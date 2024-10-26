@@ -1,0 +1,24 @@
+*{
+  margin: 0;
+  padding: 0;
+}
+body{
+  font-family: Arial, Helvetica, sans-serif;
+}
+.outer-container{
+  width: max-content;
+  border: 2px solid;
+  margin: auto;
+}
+.outer-container .row{
+  display: flex;
+}
+.outer-container .row .chess-block{
+  width: 85px;
+  height: 85px;
+  background-color: #fff;
+}
+.outer-container .row:nth-child(odd) .chess-block:nth-child(odd),
+.outer-container .row:nth-child(even) .chess-block:nth-child(even){
+  background-color: #000;
+}
