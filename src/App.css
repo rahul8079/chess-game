@@ -14,11 +14,34 @@ body{
   display: flex;
 }
 .outer-container .row .chess-block{
+  position: relative;
   width: 85px;
   height: 85px;
   background-color: #fff;
 }
+.outer-container .row .chess-block .move-circle-container{
+  height: 100%; 
+}
+.outer-container .row .chess-block .move-circle-container.take-over{
+position: absolute;
+width: 100%;
+background-color: #a49671;
+opacity: 0.6;
+}
+.outer-container .row .chess-block .move-circle-container .move-circle{
+  display: block;
+  width: 20px;
+  height: 20px;
+  background-color: #a17e26;
+  margin: 33px;
+  border-radius: 10px;
+}
+.outer-container .row .chess-block img{
+  width: 50px;
+  height: 50px;
+  padding: 15px;
+}
 .outer-container .row:nth-child(odd) .chess-block:nth-child(odd),
 .outer-container .row:nth-child(even) .chess-block:nth-child(even){
-  background-color: #000;
+  background-color: goldenrod;
 }
