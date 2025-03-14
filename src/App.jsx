@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import './App.css'
 import Pawn from './components/Pawn'
+import Rook from './components/Rook';
 
 function App() {
   const [blackPawnPositions, setBlackPawnPositions] = useState([{ row: 1, col: 0, isFirstTime: true}, { row: 1, col: 1, isFirstTime: true}, { row: 1, col: 2, isFirstTime: true}, { row: 1, col: 3, isFirstTime: true}, { row: 1, col: 4, isFirstTime: true}, { row: 1, col: 5, isFirstTime: true}, { row: 1, col: 6, isFirstTime: true}, { row: 1, col: 7, isFirstTime: true}]);
   const [whitePawnPositions, setWhitePawnPositions] = useState([{ row: 6, col: 0, isFirstTime: true }, { row: 6, col: 1, isFirstTime: true }, { row: 6, col: 2, isFirstTime: true }, { row: 6, col: 3, isFirstTime: true }, { row: 6, col: 4, isFirstTime: true }, { row: 6, col: 5, isFirstTime: true }, { row: 6, col: 6, isFirstTime: true }, { row: 6, col: 7, isFirstTime: true }]);
+  const [whiteRookPositions, setWhiteRookPositions] = useState([{ row: 7, col: 0}, { row: 7, col: 7}]);
+  const [blackRookPositions, setBlackRookPositions] = useState([{ row: 0, col: 0}, { row: 0, col: 7}]);
   const [validMovePositions, setValidMovePositions] = useState({index: -1, openPositions: [], crossPosition: [], objectColor: ''});
   const [currSelectedObj, setCurrSelectedObj] = useState({});
   const [eleminatedObjects, setEleminatedObjects] = useState({white:{pawn:0}, black:{pawn:0}});
@@ -15,21 +18,35 @@ function App() {
   }
 
   const showMovePosition = (objectType, objectColor, row, col, isFirstTime, pawnIndex) => {
+    let openPositions = [];
     setCurrSelectedObj({row:row, col:col});
     if(objectType === 'pawn') {
-        let openPositions = [];
         if(isFirstTime){
           openPositions = objectColor === 'black' ? [{row: row+1, col: col}, {row: row+2, col: col}] : [{row: row-1, col: col}, {row: row-2, col: col}];
         }else{
           openPositions = objectColor === 'black' ? [{row: row+1, col: col}] : [{row: row-1, col: col}];
         }
-        openPositions = openPositions.filter(({row,col})=>( 
-          blackPawnPositions.findIndex((pos)=>(pos.row === row && pos.col === col)) === -1 &&
-          whitePawnPositions.findIndex((pos)=>(pos.row === row && pos.col === col)) === -1 
-        ));
+        openPositions = filterOpenPositions(openPositions);
         const crossPosition = getCrossPositions(objectType, objectColor, row, col);
         setValidMovePositions(validPos => ({ ...validPos , index: pawnIndex, openPositions: openPositions, crossPosition: crossPosition, objectColor: objectColor}));
-    }
+    }else if(objectType === 'rook') {
+      if(objectColor === 'black'){
+        for(let i = 0; i < 7 ; i++){
+          if(i === currSelectedObj.row || i === currSelectedObj.col) continue;
+          openPositions.push({row: row+i, col: col});
+          openPositions.push({row: row, col: col+i});
+        }
+      }else{
+        for(let i = 0; i < 7 ; i++){
+          if(i === currSelectedObj.row || i === currSelectedObj.col) continue;
+          openPositions.push({row: row-i, col: col});
+          openPositions.push({row: row, col: col-i});
+        }
+      }
+      openPositions = filterOpenPositions(openPositions);
+      // const crossPosition = getCrossPositions(objectType, objectColor, row, col);
+      setValidMovePositions(validPos => ({ ...validPos , index: pawnIndex, openPositions: openPositions, objectColor: objectColor}));
+  }
   }
 
   const getCrossPositions = (objectType, objectColor, row, col) => {
@@ -48,13 +65,13 @@ function App() {
     let newPosition = null;  
     if(objectType === 'pawn'){
       if(objectColor === "black"){
-        newPosition = whitePawnPositions.filter(pos => (pos.row !== row && pos.col !== col));
+        newPosition = whitePawnPositions.filter(pos => (pos.row !== row || pos.col !== col));
         setWhitePawnPositions(newPosition);
         newPosition = blackPawnPositions.filter(pos => (pos.row !== currSelectedObj.row || pos.col !== currSelectedObj.col));
         setBlackPawnPositions([...newPosition, {row: row, col: col, isFirstTime: false}]);
         setEleminatedObjects(prevData => ({...prevData, white:{...prevData.white, pawn: (prevData.white.pawn)+1}}));
       }else{
-        newPosition = blackPawnPositions.filter(pos => (pos.row !== row && pos.col !== col));
+        newPosition = blackPawnPositions.filter(pos => (pos.row !== row || pos.col !== col));
         setBlackPawnPositions(newPosition); 
         newPosition = whitePawnPositions.filter(pos => (pos.row !== currSelectedObj.row || pos.col !== currSelectedObj.col));
         setWhitePawnPositions([...newPosition, {row: row, col: col, isFirstTime: false}]);
@@ -62,6 +79,16 @@ function App() {
       }
       setValidMovePositions({index: -1, openPositions: [], crossPosition: [], objectColor: ''});
     }
+  }
+
+  const filterOpenPositions = (openPositions) => {
+    openPositions = openPositions.filter(({row,col})=>( 
+      blackPawnPositions.findIndex((pos)=>(pos.row === row && pos.col === col)) === -1 &&
+      whitePawnPositions.findIndex((pos)=>(pos.row === row && pos.col === col)) === -1 &&
+      blackRookPositions.findIndex((pos)=>(pos.row === row && pos.col === col)) === -1 &&
+      whiteRookPositions.findIndex((pos)=>(pos.row === row && pos.col === col)) === -1
+    ));
+    return openPositions || null;
   }
 
   return (
@@ -81,6 +108,12 @@ function App() {
           ))}
           {whitePawnPositions.map(({row, col, isFirstTime}, pawnIndex)=>(
             rowIndex === row  && index === col && <Pawn key={col} pawnColor="white" onClick={()=>{ showMovePosition('pawn', 'white', rowIndex,index,isFirstTime,pawnIndex) }}/>
+          ))}
+          {blackRookPositions.map(({row, col})=>(
+            rowIndex === row  && index === col && <Rook key={col} rookColor="black" onClick={()=>{ showMovePosition('rook','black', rowIndex,index) }}/>
+          ))}
+          {whiteRookPositions.map(({row, col})=>(
+            rowIndex === row  && index === col && <Rook key={col} rookColor="white" onClick={()=>{ showMovePosition('rook', 'white', rowIndex,index) }}/>
           ))}
           </div>
         ))
